@@ -41,9 +41,21 @@ class SharedMemoryReader:
             return None
         self._mmap.seek(0)
         physics = SPageFilePhysics.from_buffer_copy(
-            self._mmap.read(SPageFilePhysics)
+            self._mmap.read(ctypes.sizeof(SPageFilePhysics))
         )
         if physics.speedKmh == 0 and physics.rpms == 0 and physics.gear ==0:
             return None
         return physics.gas, physics.brake
+
+if __name__ == "__main__":
+    reader = SharedMemoryReader()
+    print("Polling AC shared memory - Please start a session")
+    while True:
+        sample = reader.poll()
+        if sample is None:
+            print("No active session")
+        else:
+            gas, brake = sample
+            print(f"gas={gas:.3f} brake={brake:.3f}")
+        time.sleep(0.1)
         
